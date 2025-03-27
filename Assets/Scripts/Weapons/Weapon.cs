@@ -6,6 +6,7 @@ namespace Weapons
     {
         public int damage;
         public GameObject bulletPrefab;
+        public Transform bulletSpawn;
         public float fireRate;
         public float range;
         public float bulletSpeed;
@@ -23,7 +24,7 @@ namespace Weapons
         {
             Debug.Log("Update method called");
 
-            if (Input.GetKeyDown(KeyCode.F) && Time.time >= _nextFireTime)
+            if (canFire())
             {
                 Debug.Log("Fire");
                 Fire();
@@ -33,13 +34,16 @@ namespace Weapons
             Debug.Log("Update Weapon");
         }
 
+        protected virtual bool canFire()
+        {
+            return Input.GetButton("Fire1") && Time.time >= _nextFireTime;
+        }
+
         protected virtual void Fire()
         {
-            var fireDirection = transform.forward;
-            fireDirection.x += Random.Range(-bulletSpread, bulletSpread);
-            fireDirection.y += Random.Range(-bulletSpread, bulletSpread);
+            var fireDirection = bulletSpawn.forward;
 
-            var bullet = Instantiate(bulletPrefab, transform.position, Quaternion.LookRotation(fireDirection));
+            var bullet = Instantiate(bulletPrefab, bulletSpawn.position, Quaternion.LookRotation(fireDirection));
             var bulletScript = bullet.GetComponent<Bullet>();
             bulletScript.damage = damage;
             bulletScript.speed = bulletSpeed;
