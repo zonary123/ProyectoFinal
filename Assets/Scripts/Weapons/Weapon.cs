@@ -22,16 +22,12 @@ namespace Weapons
 
         private void Update()
         {
-            Debug.Log("Update method called");
-
             if (canFire())
             {
                 Debug.Log("Fire");
                 Fire();
                 _nextFireTime = Time.time + 1f / fireRate;
             }
-
-            Debug.Log("Update Weapon");
         }
 
         protected virtual bool canFire()
