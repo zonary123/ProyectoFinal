@@ -1,5 +1,4 @@
-﻿using System;
-using DefaultNamespace;
+﻿using DefaultNamespace;
 using UnityEngine;
 
 namespace Weapons
@@ -15,27 +14,22 @@ namespace Weapons
         {
             startPosition = transform.position;
         }
-        
+
         private void Update()
         {
             transform.Translate(Vector3.forward * speed * Time.deltaTime);
-            if (Vector3.Distance(startPosition, transform.position) >= maxDistance)
-            {
-                Destroy(gameObject);
-            }
+            if (Vector3.Distance(startPosition, transform.position) >= maxDistance) Destroy(gameObject);
         }
 
         private void OnCollisionEnter(Collision other)
         {
-            GameObject hitObject = other.gameObject;
+            var hitObject = other.gameObject;
             if (hitObject.CompareTag(Tags.ENEMY))
             {
-                Enemy enemy = hitObject.GetComponent<Enemy>();
-                if (enemy != null)
-                {
-                    enemy.takeDamage(damage);
-                }
+                var enemy = hitObject.GetComponent<Enemy>();
+                if (enemy != null) enemy.TakeDamage(damage);
             }
+
             Destroy(gameObject);
         }
     }
