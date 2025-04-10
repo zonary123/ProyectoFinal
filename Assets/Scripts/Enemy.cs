@@ -5,7 +5,8 @@ namespace DefaultNamespace
     public class Enemy : MonoBehaviour
     {
         [SerializeField] private float health;
-        private TextMesh lifeText;
+
+        [SerializeField] private TextMesh lifeText;
 
         private void Start()
         {
@@ -19,10 +20,12 @@ namespace DefaultNamespace
 
         private void Update()
         {
+            DoDamage();
         }
 
         public void TakeDamage(int damage)
         {
+            if (GameManager.Instance.isDebug) Debug.Log("Take damage: " + damage);
             health -= damage;
             if (health <= 0)
             {
@@ -34,6 +37,10 @@ namespace DefaultNamespace
             {
                 UpdateLifeText();
             }
+        }
+
+        public void DoDamage()
+        {
         }
 
         private void UpdateLifeText()

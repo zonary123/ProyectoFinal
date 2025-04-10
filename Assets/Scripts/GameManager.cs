@@ -14,6 +14,8 @@ public class GameManager : MonoBehaviour
     public float maxCooldownSpawn = 2f;
 
     public int score;
+    public int highScore;
+    public bool isDebug = true;
     public static GameManager Instance { get; private set; }
 
     private void Awake()

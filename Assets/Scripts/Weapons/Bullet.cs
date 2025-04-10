@@ -18,16 +18,30 @@ namespace Weapons
         private void Update()
         {
             transform.Translate(Vector3.forward * speed * Time.deltaTime);
-            if (Vector3.Distance(startPosition, transform.position) >= maxDistance) Destroy(gameObject);
+            if (Vector3.Distance(startPosition, transform.position) >= maxDistance)
+                Destroy(gameObject);
         }
 
-        private void OnCollisionEnter(Collision other)
+
+        private void OnTriggerEnter(Collider other)
         {
             var hitObject = other.gameObject;
-            if (hitObject.CompareTag(Tags.ENEMY))
+            if (hitObject.CompareTag("Enemy"))
             {
                 var enemy = hitObject.GetComponent<Enemy>();
-                if (enemy != null) enemy.TakeDamage(damage);
+                if (enemy != null)
+                {
+                    Debug.Log($"Bullet hit {hitObject.name}, dealing {damage} damage.");
+                    enemy.TakeDamage(damage);
+                }
+                else
+                {
+                    Debug.LogWarning("Enemy tag detected, but no Enemy component found on the GameObject.");
+                }
+            }
+            else
+            {
+                Debug.Log($"Collision detected with object: {hitObject.name}, but it does not have the Enemy tag.");
             }
 
             Destroy(gameObject);

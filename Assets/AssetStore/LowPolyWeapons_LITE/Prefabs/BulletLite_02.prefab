@@ -119,9 +119,10 @@ GameObject:
   m_Component:
   - component: {fileID: 4713719514245437058}
   - component: {fileID: 8680204808708109466}
+  - component: {fileID: -7199019473179982258}
   m_Layer: 0
   m_Name: BulletLite_02
-  m_TagString: Untagged
+  m_TagString: Bullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -157,7 +158,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 1
   speed: 5
-  maxDistance: 10
+  maxDistance: 40
+--- !u!65 &-7199019473179982258
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5341742223406746680}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.08351803, y: 0.036026597, z: 0.0244143}
+  m_Center: {x: 0.019199014, y: -0.0014830232, z: 0.0016515255}
 --- !u!1 &8087445199789049519
 GameObject:
   m_ObjectHideFlags: 0
