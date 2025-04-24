@@ -1,120 +1,114 @@
 using System.Collections;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
-namespace Weapons
-{
-    public class Weapon : MonoBehaviour
-    {
-        public GameObject bulletPrefab;
-        public Transform bulletSpawn;
+namespace Weapons{
+	public class Weapon : MonoBehaviour{
+		public GameObject bulletPrefab;
+		public Transform bulletSpawn;
 
-        [Header("Weapon Settings")] public float reloadTime;
+		[Header("Weapon Settings")] public float reloadTime;
+		public int damage;
+		public int actualAmmo;
+		public int maxAmmo;
+		public int magazineSize;
+		public float fireRate;
+		public float range;
 
-        public TypeFire TypeFire;
-        public int damage;
-        public int currentMagazineAmmo;
-        public int maxAmmo;
-        public int magazineSize;
-        public float fireRate;
-        public float range;
+		[Header("Bullet Settings")] public float bulletSpeed;
+		public ParticleSystem particle;
+		public float bulletSpread;
+		private readonly float bulletLifeTime = 3f;
+		private bool _isReloading;
 
-        [Header("Bullet Settings")] public float bulletSpeed;
-        public ParticleSystem particle;
-        public float bulletLifeTime;
-        public float bulletSpread;
-        private bool _isReloading;
+		private float _nextFireTime;
 
-        private float _nextFireTime;
+		private void Awake(){
+			if (bulletPrefab == null) Debug.LogError("La bala no está asignada en el inspector.");
 
-        private void Start()
-        {
-            _nextFireTime = 0f;
-            currentMagazineAmmo = magazineSize;
-        }
+			if (particle == null) Debug.LogError("El sistema de partículas no está asignado en el inspector.");
 
-        private void Update()
-        {
-            if (_isReloading) return;
+			_nextFireTime = 0f;
+			actualAmmo = magazineSize;
+		}
 
-            if (Input.GetKeyDown(KeyCode.R) && currentMagazineAmmo < magazineSize && maxAmmo > 0)
-            {
-                StartCoroutine(Reload());
-                return;
-            }
+		private void Update(){
+			if (_isReloading) return;
 
-            if (CanFire() && currentMagazineAmmo > 0)
-            {
-                Fire();
-                _nextFireTime = Time.time + 1f / fireRate;
-                currentMagazineAmmo--;
-                Debug.Log($"Current magazine ammo: {currentMagazineAmmo} / {magazineSize}, Total ammo: {maxAmmo}");
-            }
-        }
+			if (Input.GetKeyDown(KeyCode.R) && actualAmmo < magazineSize && maxAmmo > 0) StartCoroutine(Reload());
+		}
 
-        private IEnumerator Reload()
-        {
-            _isReloading = true;
-            Debug.Log("Reloading...");
-            yield return new WaitForSeconds(reloadTime);
+		public void Fire(Vector3 firePosition, Vector3 fireDirection){
+			// Verificar si el arma está lista para disparar según el fireRate
+			if (Time.time < _nextFireTime){
+				Debug.Log($"No puedes disparar aún. Tiempo restante: {_nextFireTime - Time.time} segundos.");
+				return;
+			}
 
-            var ammoNeeded = magazineSize - currentMagazineAmmo;
-            var ammoToReload = Mathf.Min(ammoNeeded, maxAmmo);
-            currentMagazineAmmo += ammoToReload;
-            maxAmmo -= ammoToReload;
+			// Verificar si hay munición en el cargador
+			if (actualAmmo <= 0){
+				Debug.Log("Sin munición en el cargador. Recarga para continuar disparando.");
+				return;
+			}
 
-            _isReloading = false;
-            Debug.Log("Reload complete.");
-        }
+			// Aplicar propagación al disparo
+			var spread = Quaternion.Euler(
+				Random.Range(-bulletSpread, bulletSpread),
+				Random.Range(-bulletSpread, bulletSpread),
+				0f
+			);
 
-        protected virtual bool CanFire()
-        {
-            switch (TypeFire)
-            {
-                case TypeFire.Pulse:
-                    return Input.GetButtonDown("Fire1");
-                case TypeFire.Single:
-                    return Input.GetButtonDown("Fire1") && Time.time >= _nextFireTime;
-                case TypeFire.Burst:
-                    return Input.GetButton("Fire1") && Time.time >= _nextFireTime;
-                case TypeFire.Auto:
-                    return Input.GetButton("Fire1");
-                default:
-                    return false;
-            }
-        }
+			if (particle != null){
+				particle.transform.position = bulletSpawn.position;
+				particle.transform.rotation = Quaternion.LookRotation(fireDirection);
+				particle.Play();
+			}
+			else{
+				Debug.LogWarning("Sistema de partículas no encontrado");
+			}
 
-        protected virtual void Fire()
-        {
-            var spread = Quaternion.Euler(
-                Random.Range(-bulletSpread, bulletSpread),
-                Random.Range(-bulletSpread, bulletSpread),
-                0f
-            );
-            var fireDirection = spread * bulletSpawn.forward;
+			var finalDirection = spread * fireDirection;
 
-            var bullet = Instantiate(bulletPrefab, bulletSpawn.position, Quaternion.LookRotation(fireDirection));
-            var bulletScript = bullet.GetComponent<Bullet>();
-            if (bulletScript != null)
-            {
-                bulletScript.damage = damage;
-                bulletScript.speed = bulletSpeed;
-                bulletScript.maxDistance = range;
-                Debug.Log(bulletScript.damage);
-            }
-            else
-            {
-                Debug.LogWarning("Bullet script not found");
-            }
+			var adjustedFirePosition = firePosition + fireDirection.normalized * 0.5f; // Desplaza 0.5 unidades hacia adelante
 
-            Destroy(bullet, bulletLifeTime);
-        }
-    }
+			var bullet = Instantiate(bulletPrefab, adjustedFirePosition, Quaternion.LookRotation(finalDirection));
+			var bulletScript = bullet.GetComponent<Bullet>();
+			if (bulletScript != null){
+				bulletScript.damage = damage;
+				bulletScript.speed = bulletSpeed;
+				bulletScript.maxDistance = range;
+			}
+			else{
+				Debug.LogWarning("El prefab de la bala no tiene el script Bullet adjunto.");
+			}
 
-    public enum TypeFire
-    {
-        Pulse,
-        Single,
-        Burst,
-        Auto
-    }
+			Destroy(bullet, bulletLifeTime);
+
+			// Actualizar tiempo del próximo disparo y reducir munición
+			_nextFireTime = Time.time + 1f / fireRate;
+			actualAmmo--;
+		}
+
+		public IEnumerator Reload(){
+			_isReloading = true;
+			Debug.Log("Recargando...");
+			yield return new WaitForSeconds(reloadTime);
+
+			var ammoNeeded = magazineSize - actualAmmo;
+			var ammoToReload = Mathf.Min(ammoNeeded, maxAmmo);
+			actualAmmo += ammoToReload;
+			maxAmmo -= ammoToReload;
+
+			_isReloading = false;
+			GameManager.Instance.UpdateAmmoText(this);
+			Debug.Log("Recarga completa");
+		}
+	}
+
+	public enum TypeFire{
+		Pulse,
+		Single,
+		Burst,
+		Auto
+	}
 }
