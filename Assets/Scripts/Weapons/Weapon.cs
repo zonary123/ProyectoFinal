@@ -4,6 +4,13 @@ using Random = UnityEngine.Random;
 
 namespace Weapons{
 	public class Weapon : MonoBehaviour{
+		public enum TypeFire{
+			Pulse,
+			Single,
+			Burst,
+			Auto
+		}
+
 		public GameObject bulletPrefab;
 		public Transform bulletSpawn;
 
@@ -39,19 +46,9 @@ namespace Weapons{
 		}
 
 		public void Fire(Vector3 firePosition, Vector3 fireDirection){
-			// Verificar si el arma está lista para disparar según el fireRate
-			if (Time.time < _nextFireTime){
-				Debug.Log($"No puedes disparar aún. Tiempo restante: {_nextFireTime - Time.time} segundos.");
-				return;
-			}
+			if (Time.time < _nextFireTime) return;
+			if (actualAmmo <= 0) return;
 
-			// Verificar si hay munición en el cargador
-			if (actualAmmo <= 0){
-				Debug.Log("Sin munición en el cargador. Recarga para continuar disparando.");
-				return;
-			}
-
-			// Aplicar propagación al disparo
 			var spread = Quaternion.Euler(
 				Random.Range(-bulletSpread, bulletSpread),
 				Random.Range(-bulletSpread, bulletSpread),
@@ -63,13 +60,11 @@ namespace Weapons{
 				particle.transform.rotation = Quaternion.LookRotation(fireDirection);
 				particle.Play();
 			}
-			else{
-				Debug.LogWarning("Sistema de partículas no encontrado");
-			}
 
 			var finalDirection = spread * fireDirection;
 
-			var adjustedFirePosition = firePosition + fireDirection.normalized * 0.5f; // Desplaza 0.5 unidades hacia adelante
+			var adjustedFirePosition =
+				firePosition + fireDirection.normalized * 0.5f; // Desplaza 0.5 unidades hacia adelante
 
 			var bullet = Instantiate(bulletPrefab, adjustedFirePosition, Quaternion.LookRotation(finalDirection));
 			var bulletScript = bullet.GetComponent<Bullet>();
@@ -77,9 +72,6 @@ namespace Weapons{
 				bulletScript.damage = damage;
 				bulletScript.speed = bulletSpeed;
 				bulletScript.maxDistance = range;
-			}
-			else{
-				Debug.LogWarning("El prefab de la bala no tiene el script Bullet adjunto.");
 			}
 
 			Destroy(bullet, bulletLifeTime);
@@ -103,12 +95,5 @@ namespace Weapons{
 			GameManager.Instance.UpdateAmmoText(this);
 			Debug.Log("Recarga completa");
 		}
-	}
-
-	public enum TypeFire{
-		Pulse,
-		Single,
-		Burst,
-		Auto
 	}
 }

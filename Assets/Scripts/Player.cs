@@ -71,6 +71,14 @@ public class Player : MonoBehaviour{
 			GameManager.Instance.GameOver();
 		}
 
+		var weapon = weapons[_currentWeaponIndex];
+		if (weapon != null){
+			if (weapon.actualAmmo <= 0 && weapon.maxAmmo > 0)
+				GameManager.Instance.relaodAmmoText.gameObject.SetActive(true);
+			else
+				GameManager.Instance.relaodAmmoText.gameObject.SetActive(false);
+		}
+
 		HandleMovement();
 		HandleCamera();
 		HandleWeaponSwitching();

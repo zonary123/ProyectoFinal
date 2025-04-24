@@ -13695,7 +13695,7 @@ MonoBehaviour:
   relaodAmmoText: {fileID: 564186700}
   score: 0
   highScore: 0
-  isDebug: 1
+  isDebug: 0
   spawners:
   - {fileID: 1594483857}
   - {fileID: 2086874807}
